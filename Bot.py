@@ -4,9 +4,9 @@ import bcrypt
 from datetime import datetime
 from telebot import types
 from time import sleep
-from Bot_Special_Functions_2 import send_photo, send_keyboard, send_url_keyboard, bot_greeting, \
+from Bot_Special_Functions import send_photo, send_keyboard, send_url_keyboard, bot_greeting, \
     check_time, unexpected_message
-from Bot_DB_Worker import encrypt_password, check_password_correctness, create_user_dictionary, DB, \
+from Bot_DB_Functions import encrypt_password, check_password_correctness, create_user_dictionary, DB, \
     generate_login_password
 
 
