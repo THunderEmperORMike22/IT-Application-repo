@@ -10,7 +10,7 @@ from Bot_DB_Functions import encrypt_password, check_password_correctness, creat
     generate_login_password
 
 
-bot = telebot.TeleBot(config.token)
+bot = telebot.TeleBot(Bot_config.token)
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CLASSES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -184,10 +184,10 @@ class User:
             elif check is False:
                 return "ОШИБКА! Данный пользователь не существует!"
             elif check == "Error":
-                return config.user_error_message
+                return Bot_config.user_error_message
         except Exception as e:
             self.user_error(e, [user_login, old_password, new_password])
-            return config.user_error_message
+            return Bot_config.user_error_message
 
     def change_login(self, user_id, new_login):
         try:
@@ -318,10 +318,10 @@ class Administer(Admin):
         if admin_help:
             sleep(1)
             if self.admin_access >= 3:
-                self.bot.send_message(message.chat.id, config.admin_menu_help_message.format(config.admin_menu_links_message))
+                self.bot.send_message(message.chat.id, Bot_config.admin_menu_help_message.format(Bot_config.admin_menu_links_message))
 
             else:
-                self.bot.send_message(message.chat.id, config.admin_menu_help_message.format(""))
+                self.bot.send_message(message.chat.id, Bot_config.admin_menu_help_message.format(""))
         sleep(1)
         '''if self.admin_access >= 3:
             msg = send_keyboard(self.bot, message, ["🔄Ссылки", "📋Меню", "📨Рассылка", "✅Добавить пользователя",
@@ -339,7 +339,7 @@ class Administer(Admin):
             self.admin_menu(message, bot_message="Чем я могу помочь?", admin_help=True)
         elif message.text == "🔄Ссылки":
             links_list = ""
-            base = DB(config.links_base_name)
+            base = DB(Bot_config.links_base_name)
             link_connection = base.get_connection()
             link_cursor = link_connection.cursor()
             link_cursor.execute("SELECT link_name, link_description FROM links")
@@ -349,7 +349,7 @@ class Administer(Admin):
             link_cursor.close()
             link_connection.commit()
             base.__del__()
-            self.bot.send_message(message.chat.id, config.links_change_message.format(links_list), parse_mode="Markdown")
+            self.bot.send_message(message.chat.id, Bot_config.links_change_message.format(links_list), parse_mode="Markdown")
             msg = send_keyboard(self.bot, message, ["🔙Отмена"], "Введите название Информации/Ссылки, "
                                                                 "которую хотите изменить")
             self.bot.register_next_step_handler(msg, self.insert_link_for_change)
@@ -357,7 +357,7 @@ class Administer(Admin):
             keyboard = send_keyboard(self.bot, message, ["🔙Отмена"], "Введите ФИО добавляемого пользователя")
             self.bot.register_next_step_handler(keyboard, self.start_insert_user)
         elif message.text == "❎Удалить пользователя":
-            keyboard = send_keyboard(self.bot, message, [config.user_list, "🔙Отмена"], config.bot_user_delete)
+            keyboard = send_keyboard(self.bot, message, [Bot_config.user_list, "🔙Отмена"], Bot_config.bot_user_delete)
             self.bot.register_next_step_handler(keyboard, self.start_delete)
         elif message.text == "📨Рассылка":
             mail = Mailing(bot, self.admin_info)
@@ -386,7 +386,7 @@ class Administer(Admin):
         elif message.text == "/menu":
             entrance(message)
         else:
-            base = DB(config.links_base_name)
+            base = DB(Bot_config.links_base_name)
             link_connection = base.get_connection()
             link_changer = BotLinks(link_connection)
             link_changer.update_link(self.link_for_change, message.text)
@@ -407,8 +407,8 @@ class Administer(Admin):
             self.user_surname = user_info[0]
             self.user_name = user_info[1]
             self.user_second_name = user_info[2]
-            self.bot.send_message(message.chat.id, config.bot_user_insert)
-            keyboard = send_keyboard(self.bot, message, ["🎰Сгенерировать", "🔙Отмена"], config.generate_button_help)
+            self.bot.send_message(message.chat.id, Bot_config.bot_user_insert)
+            keyboard = send_keyboard(self.bot, message, ["🎰Сгенерировать", "🔙Отмена"], Bot_config.generate_button_help)
             self.bot.register_next_step_handler(keyboard, self.insert_login_password)
 
     def insert_login_password(self, message):
@@ -424,7 +424,7 @@ class Administer(Admin):
             else:
                 self.login, self.password = message.text.split()
             bot.send_message(message.chat.id, "Загрузите фото добавляемого пользователя в формате jpg (как фото)")
-            msg = send_keyboard(self.bot, message, ["⏩Пропустить", "🔙Отмена"], config.skip_button_help)
+            msg = send_keyboard(self.bot, message, ["⏩Пропустить", "🔙Отмена"], Bot_config.skip_button_help)
             self.bot.register_next_step_handler(msg, self.insert_photo)
 
     def insert_photo(self, message):
@@ -441,7 +441,7 @@ class Administer(Admin):
             try:
                 photo_info = self.bot.get_file(message.photo[len(message.photo) - 1].file_id)
                 downloaded_photo = self.bot.download_file(photo_info.file_path)
-                self.photo = config.photo_adress + photo_info.file_path + str(self.admin_info["user_id"])
+                self.photo = Bot_config.photo_adress + photo_info.file_path + str(self.admin_info["user_id"])
                 with open(self.photo, "wb") as new_photo:
                     new_photo.write(downloaded_photo)
                 self.insert_work_info(message)
@@ -537,7 +537,7 @@ class Administer(Admin):
                 buttons.append(str(i))
                 i += 1
             buttons.append("🔙Отмена")
-            msg = send_keyboard(self.bot, message, ["🔙Отмена"], config.access_level_message)
+            msg = send_keyboard(self.bot, message, ["🔙Отмена"], Bot_config.access_level_message)
             self.bot.register_next_step_handler(msg, self.insert_access_level)
 
     def insert_access_level(self, message):
@@ -559,13 +559,13 @@ class Administer(Admin):
                                                                     self.user_second_name))
                 bot.send_message(message.chat.id, "Информация о пользователе:")
                 bot.send_message(message.chat.id, "login:\t\t{}\npassword:\t\t{}".format(self.login, self.password))
-                bot.send_message(message.chat.id, config.user_information_message.format(user["user_id"],
-                                                                                         user["user_surname"] + " " +
-                                                                                         user["user_name"] + " " +
-                                                                                         user["user_second_name"],
-                                                                                         user["user_department"],
-                                                                                         user["user_section"],
-                                                                                         user["user_position"]))
+                bot.send_message(message.chat.id, Bot_config.user_information_message.format(user["user_id"],
+                                                                                             user["user_surname"] + " " +
+                                                                                             user["user_name"] + " " +
+                                                                                             user["user_second_name"],
+                                                                                             user["user_department"],
+                                                                                             user["user_section"],
+                                                                                             user["user_position"]))
                 self.login = None
                 self.password = None
                 self.photo = None
@@ -581,7 +581,7 @@ class Administer(Admin):
                 self.insert_position(self.bot.send_message(message.chat.id, self.user_position))
 
     def start_delete(self, message):
-        if message.text == config.user_list:
+        if message.text == Bot_config.user_list:
             users_list = UsersList(bot, self.admin_info, "delete_list")
             users_list.delete_list(message)
         elif message.text == "🔙Отмена":
@@ -718,7 +718,7 @@ class Authorization(User):
                     cursor = self.connection.cursor()
                     new_time = int(datetime.today().timestamp())
                     cursor.execute("UPDATE users SET last_try = ? WHERE user_login = ?", (new_time, self.login))
-                    new_base = DB(config.bot_base_name)
+                    new_base = DB(Bot_config.bot_base_name)
                     bot_connection = new_base.get_connection()
                     bot_base = BotDB(bot_connection)
                     bot_base.update_info(message.chat.id)
@@ -727,9 +727,9 @@ class Authorization(User):
                     self.connection.commit()
                     self.base.__del__()
                     if self.return_menu == "start":
-                        start_menu(message, False, config.password_limit_message + "минуту.")
+                        start_menu(message, False, Bot_config.password_limit_message + "минуту.")
                     else:
-                        guest_menu(message, False, config.password_limit_message + "минуту.")
+                        guest_menu(message, False, Bot_config.password_limit_message + "минуту.")
             else:
                 send_exception(message)
 
@@ -765,7 +765,7 @@ class PersonalAccount(User):
                 old_info_message = self.information["self_info"]
                 self.bot.send_message(message.chat.id, old_info_message)
             self.bot.send_message(message.chat.id, "Введите новую")
-            msg = send_keyboard(self.bot, message, ["🔙Отмена"], config.self_information_help_message)
+            msg = send_keyboard(self.bot, message, ["🔙Отмена"], Bot_config.self_information_help_message)
             self.bot.register_next_step_handler(msg, self.account_change_self_info)
         elif message.text == "🔄Фото":
             msg = send_keyboard(self.bot, message, ["🔙Отмена"], "Загрузите новое фото в формате jpg (как фото)")
@@ -890,7 +890,7 @@ class PersonalAccount(User):
                     with open(user["user_photo"], "wb") as new_photo:
                         new_photo.write(downloaded_photo)
                 else:
-                    photo = config.photo_adress + photo_info.file_path + str(self.information["user_id"])
+                    photo = Bot_config.photo_adress + photo_info.file_path + str(self.information["user_id"])
                     with open(photo, "wb") as new_photo:
                         new_photo.write(downloaded_photo)
                     if not user["user_photo"]:
@@ -925,24 +925,24 @@ class History:
         self.menu = menu
 
     def start_history(self, message):
-        send_photo(self.bot, message, "Bot_Pictures/Bot_MGT_logo2.png", config.history_message1)
+        send_photo(self.bot, message, "Bot_Pictures/Bot_MGT_logo2.png", Bot_config.history_message1)
         send_url_keyboard(self.bot, message, "МОСГОРТУР", get_link("mgt_url"),
                               "Перейти на сайт Мосгортур")
         sleep(1.5)
-        self.bot.send_message(message.chat.id, config.history_message2)
+        self.bot.send_message(message.chat.id, Bot_config.history_message2)
         sleep(1)
-        send_photo(self.bot, message, "Bot_Pictures/Bot_History1.jpg", config.history_message3)
+        send_photo(self.bot, message, "Bot_Pictures/Bot_History1.jpg", Bot_config.history_message3)
         sleep(1.5)
-        self.bot.send_message(message.chat.id, config.history_message4)
+        self.bot.send_message(message.chat.id, Bot_config.history_message4)
         sleep(1)
-        self.bot.send_message(message.chat.id, config.history_message5)
+        self.bot.send_message(message.chat.id, Bot_config.history_message5)
         sleep(1)
-        send_photo(self.bot, message, "Bot_Pictures/Bot_History2.jpg", config.history_message6)
+        send_photo(self.bot, message, "Bot_Pictures/Bot_History2.jpg", Bot_config.history_message6)
         sleep(1.5)
-        self.bot.send_message(message.chat.id, config.history_message7)
+        self.bot.send_message(message.chat.id, Bot_config.history_message7)
         sleep(1)
-        send_photo(self.bot, message, "Bot_Pictures/Bot_History3.png", config.history_message8)
-        msg = send_keyboard(bot, message, ["📋Меню"], config.history_message9)
+        send_photo(self.bot, message, "Bot_Pictures/Bot_History3.png", Bot_config.history_message8)
+        msg = send_keyboard(bot, message, ["📋Меню"], Bot_config.history_message9)
         self.bot.register_next_step_handler(msg, self.end_history)
 
     def end_history(self, message):
@@ -981,37 +981,37 @@ class Services:
         if message.text == "📋Меню":
             main_menu(message)
         elif message.text == "GLPI":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_GLPI_logo.jpg", config.glpi_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_GLPI_logo.jpg", Bot_config.glpi_message)
             sleep(1.5)
-            bot.send_message(message.chat.id, config.glpi_access)
+            bot.send_message(message.chat.id, Bot_config.glpi_access)
             send_url_keyboard(self.bot, message, "Перейти на GLPI", get_link("glpi_url"),
                               "Нажмите, чтобы перейти к сервису: ")
             self.more_services(message)
         elif message.text == "Office 365":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Office365_logo.png", config.office_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Office365_logo.png", Bot_config.office_message)
             sleep(1.5)
-            send_url_keyboard(self.bot, message, "Перейти на GLPI", get_link("glpi_url"), config.office_install)
+            send_url_keyboard(self.bot, message, "Перейти на GLPI", get_link("glpi_url"), Bot_config.office_install)
             send_url_keyboard(self.bot, message, "Перейти на Office.com", get_link("office_url"),
                               "Узнать больше можно на сайте сервиса: ")
             self.more_services(message)
         elif message.text == "ЭДО":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Edo_logo.jpg", config.edo_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Edo_logo.jpg", Bot_config.edo_message)
             sleep(1.5)
-            bot.send_message(message.chat.id, config.edo_install)
+            bot.send_message(message.chat.id, Bot_config.edo_install)
             send_url_keyboard(self.bot, message, "Перейти к ЭДО", get_link("glpi_url"),
                               "Нажмите, чтобы перейти к сервису: ")
             self.more_services(message)
         elif message.text == "АИС":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_MGT_logo1.png", config.ais_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_MGT_logo1.png", Bot_config.ais_message)
             sleep(1.5)
-            bot.send_message(message.chat.id, config.ais_access)
+            bot.send_message(message.chat.id, Bot_config.ais_access)
             send_url_keyboard(self.bot, message, "Перейти на АИС", get_link("ais_url"),
                               "Нажмите, чтобы перейти к сервису: ")
             self.more_services(message)
         elif message.text == "Helpdesk":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Helpdesk_logo.png", config.helpdesk_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Helpdesk_logo.png", Bot_config.helpdesk_message)
             sleep(1.5)
-            bot.send_message(message.chat.id, config.helpdesk_access)
+            bot.send_message(message.chat.id, Bot_config.helpdesk_access)
             send_url_keyboard(self.bot, message, "Перейти на Helpdesk", get_link("helpdesk_url"),
                               "Нажмите, чтобы перейти к сервису: ")
             self.more_services(message)
@@ -1060,16 +1060,16 @@ class Privileges:
         elif message.text == "/menu":
             entrance(message)
         elif message.text == "☎Связь":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Megafon_logo.png", config.megafon_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Megafon_logo.png", Bot_config.megafon_message)
             sleep(1.5)
-            self.bot.send_message(message.chat.id, config.megafon_package)
-            send_url_keyboard(self.bot, message, "Перейти на GLPI", get_link("glpi_url"), config.megafon_access)
+            self.bot.send_message(message.chat.id, Bot_config.megafon_package)
+            send_url_keyboard(self.bot, message, "Перейти на GLPI", get_link("glpi_url"), Bot_config.megafon_access)
             send_url_keyboard(self.bot, message, "МегаФон", get_link("megafon_url"), "Узнать больше на сайте Мегафон:")
             self.more_privileges(message)
         elif message.text == "📚Публикации":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Article_logo.jpg", config.articles_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Article_logo.jpg", Bot_config.articles_message)
             sleep(1.5)
-            self.bot.send_message(message.chat.id, config.articles_access)
+            self.bot.send_message(message.chat.id, Bot_config.articles_access)
             send_url_keyboard(self.bot, message, "Публикация", get_link("articles_example_url"),
                               "Пример нашей публикации:")
             send_url_keyboard(self.bot, message, "Перейти к библиотеке", get_link("articles_library_url"),
@@ -1080,23 +1080,23 @@ class Privileges:
         elif message.text == "☂Страховка":
             insurance(message, self.menu)
         elif message.text == "🎫Путёвки":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Camp.jpg", config.camp_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Camp.jpg", Bot_config.camp_message)
             sleep(1)
-            send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("mgt_url"), config.camp_access1)
-            self.bot.send_message(message.chat.id, config.camp_access2)
-            self.bot.send_message(message.chat.id, config.camp_access3)
+            send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("mgt_url"), Bot_config.camp_access1)
+            self.bot.send_message(message.chat.id, Bot_config.camp_access2)
+            self.bot.send_message(message.chat.id, Bot_config.camp_access3)
             self.more_privileges(message)
         elif message.text == "🇬🇧Английский":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Skyeng_logo.jpg", config.english_message1)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Skyeng_logo.jpg", Bot_config.english_message1)
             send_url_keyboard(self.bot, message, "SKYENG", get_link("english_url1"), "Перейти на сайт")
             sleep(1.5)
-            self.bot.send_message(message.chat.id, config.english_message2)
+            self.bot.send_message(message.chat.id, Bot_config.english_message2)
             sleep(1)
-            self.bot.send_message(message.chat.id, config.english_message3)
+            self.bot.send_message(message.chat.id, Bot_config.english_message3)
             sleep(1)
-            self.bot.send_message(message.chat.id, config.english_message4)
+            self.bot.send_message(message.chat.id, Bot_config.english_message4)
             send_url_keyboard(self.bot, message, "Запишитесь на первый пробный урок", get_link("english_url2"),
-                              config.english_message5)
+                              Bot_config.english_message5)
             self.more_privileges(message)
         else:
             self.bot.send_message(message.chat.id, unexpected_message())
@@ -1120,7 +1120,7 @@ class Sport:
 
     def start_sport(self, message):
         send_photo(self.bot, message, "Bot_Pictures/Bot_Sport.jpg")
-        msg = send_keyboard(self.bot, message, ["WorldClass", "XFit", "🔙Отмена"], config.sport_message, True)
+        msg = send_keyboard(self.bot, message, ["WorldClass", "XFit", "🔙Отмена"], Bot_config.sport_message, True)
         self.bot.register_next_step_handler(msg, self.sport_information)
 
     def sport_information(self, message):
@@ -1134,7 +1134,7 @@ class Sport:
             send_photo(self.bot, message, "Bot_Pictures/Bot_WorldClass_logo.jpg")
             sleep(1.5)
             send_url_keyboard(self.bot, message, "🗺Карта клубов", get_link("worldclass_map"),
-                              config.worldclass_message)
+                              Bot_config.worldclass_message)
             base = DB()
             connection = base.get_connection()
             authorizator = User(connection)
@@ -1144,8 +1144,8 @@ class Sport:
                 keyboard = types.InlineKeyboardMarkup()
                 keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data="sport_worldclass_{}".format(name))
                                for name in ["Получить текст заявки"]])
-                self.bot.send_message(message.chat.id, config.worldclass_access, reply_markup=keyboard)
-                self.bot.send_message(message.chat.id, config.worldclass_access3.format(get_link("worldclass_manager")))
+                self.bot.send_message(message.chat.id, Bot_config.worldclass_access, reply_markup=keyboard)
+                self.bot.send_message(message.chat.id, Bot_config.worldclass_access3.format(get_link("worldclass_manager")))
             sleep(1)
             send_url_keyboard(self.bot, message, "📄Прайс-лист", get_link("worldclass_pricelist"), "💲Корпоративные цены")
             send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("worldclass_url"),
@@ -1154,7 +1154,7 @@ class Sport:
         elif message.text == "XFit":
             send_photo(self.bot, message, "Bot_Pictures/Bot_Xfit_logo.jpg")
             sleep(1.5)
-            send_url_keyboard(self.bot, message, "🗺Карта клубов", get_link("xfit_map"), config.xfit_message)
+            send_url_keyboard(self.bot, message, "🗺Карта клубов", get_link("xfit_map"), Bot_config.xfit_message)
             base = DB()
             connection = base.get_connection()
             authorizator = User(connection)
@@ -1164,8 +1164,8 @@ class Sport:
                 keyboard = types.InlineKeyboardMarkup()
                 keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data="sport_xfit_{}".format(name))
                                for name in ["Получить текст заявки"]])
-                self.bot.send_message(message.chat.id, config.xfit_access, reply_markup=keyboard)
-                self.bot.send_message(message.chat.id, config.xfit_access3.format(get_link("xfit_manager")))
+                self.bot.send_message(message.chat.id, Bot_config.xfit_access, reply_markup=keyboard)
+                self.bot.send_message(message.chat.id, Bot_config.xfit_access3.format(get_link("xfit_manager")))
             sleep(1)
             send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("xfit_url"), "Больше о XFit на сайте")
             self.more_sport(message)
@@ -1250,10 +1250,10 @@ class Sport:
         elif message.text == "Файл":
             with open("application_text.txt", "w", encoding="utf-8") as sport_file:
                 if self.club == "worldclass":
-                    print(config.sport_application_wc.format(self.phone, self.date_of_birth, self.user),
+                    print(Bot_config.sport_application_wc.format(self.phone, self.date_of_birth, self.user),
                           file=sport_file)
                 else:
-                    print(config.sport_application_xfit.format(self.address, self.phone, self.date, self.user),
+                    print(Bot_config.sport_application_xfit.format(self.address, self.phone, self.date, self.user),
                           file=sport_file)
             with open("application_text.txt", "rb") as sport_file:
                 self.bot.send_message(message.chat.id, "Заявка готова!")
@@ -1263,11 +1263,11 @@ class Sport:
             self.bot.send_message(message.chat.id, "Заявка готова!")
             if self.club == "worldclass":
                 self.bot.send_message(message.chat.id,
-                                      config.sport_application_wc.format(self.phone, self.date_of_birth, self.user))
+                                      Bot_config.sport_application_wc.format(self.phone, self.date_of_birth, self.user))
             else:
                 self.bot.send_message(message.chat.id,
-                                      config.sport_application_xfit.format(self.address,
-                                                                           self.phone, self.date, self.user))
+                                      Bot_config.sport_application_xfit.format(self.address,
+                                                                               self.phone, self.date, self.user))
             self.more_sport(message)
         else:
             self.bot.send_message(message.chat.id, unexpected_message())
@@ -1283,9 +1283,9 @@ class Insurance:
 
     def start_insurance(self, message):
         send_photo(self.bot, message, "Bot_Pictures/Bot_PECO_logo.jpg")
-        send_url_keyboard(self.bot, message, "PECO", get_link("insurance_url"), config.insurance_message)
+        send_url_keyboard(self.bot, message, "PECO", get_link("insurance_url"), Bot_config.insurance_message)
         msg = send_keyboard(self.bot, message, ["🚗ОСАГО", "🏥ДМС", "💳Зелёная карта", "🏡Страхование имущества",
-                                                "📋Меню"], config.insurance_message2, True)
+                                                "📋Меню"], Bot_config.insurance_message2, True)
         self.bot.register_next_step_handler(msg, self.insurance_information)
 
     def more_insurance(self, message):
@@ -1311,31 +1311,31 @@ class Insurance:
 
     def insurance_information(self, message):
         if message.text == "🚗ОСАГО":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_Osago.jpg", config.osago_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_Osago.jpg", Bot_config.osago_message)
             sleep(2.5)
-            self.bot.send_message(message.chat.id, config.access_message)
-            self.bot.send_message(message.chat.id, config.osago_doc)
-            self.bot.send_message(message.chat.id, config.insurance_access.format(get_link("insurance_manager")))
+            self.bot.send_message(message.chat.id, Bot_config.access_message)
+            self.bot.send_message(message.chat.id, Bot_config.osago_doc)
+            self.bot.send_message(message.chat.id, Bot_config.insurance_access.format(get_link("insurance_manager")))
             self.more_insurance(message)
         elif message.text == "🏡Страхование имущества":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_House.jpg", config.home_insurance_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_House.jpg", Bot_config.home_insurance_message)
             sleep(2.5)
-            self.bot.send_message(message.chat.id, config.access_message)
-            self.bot.send_message(message.chat.id, config.home_insurance_doc)
-            self.bot.send_message(message.chat.id, config.insurance_access.format(get_link("insurance_manager")))
+            self.bot.send_message(message.chat.id, Bot_config.access_message)
+            self.bot.send_message(message.chat.id, Bot_config.home_insurance_doc)
+            self.bot.send_message(message.chat.id, Bot_config.insurance_access.format(get_link("insurance_manager")))
             self.more_insurance(message)
         elif message.text == "💳Зелёная карта":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_GreenCard.jpg", config.green_card_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_GreenCard.jpg", Bot_config.green_card_message)
             sleep(2.5)
-            self.bot.send_message(message.chat.id, config.access_message)
-            self.bot.send_message(message.chat.id, config.green_card_doc)
-            self.bot.send_message(message.chat.id, config.insurance_access.format(get_link("insurance_manager")))
+            self.bot.send_message(message.chat.id, Bot_config.access_message)
+            self.bot.send_message(message.chat.id, Bot_config.green_card_doc)
+            self.bot.send_message(message.chat.id, Bot_config.insurance_access.format(get_link("insurance_manager")))
             self.more_insurance(message)
         elif message.text == "🏥ДМС":
-            send_photo(self.bot, message, "Bot_Pictures/Bot_DMS.jpg", config.dms_message)
+            send_photo(self.bot, message, "Bot_Pictures/Bot_DMS.jpg", Bot_config.dms_message)
             sleep(2.5)
-            send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("dms_url"), config.dms_doc)
-            self.bot.send_message(message.chat.id, config.insurance_access.format(get_link("insurance_manager")))
+            send_url_keyboard(self.bot, message, "Перейти на сайт", get_link("dms_url"), Bot_config.dms_doc)
+            self.bot.send_message(message.chat.id, Bot_config.insurance_access.format(get_link("insurance_manager")))
             self.more_insurance(message)
         elif message.text == "📋Меню":
             if self.menu == "guest":
@@ -1368,15 +1368,15 @@ class UsersList:
                 self.show_users_list(message, "Пользователи доступные для удаления:\n",
                                      "Нет пользователей доступных для удаления")
             elif self.admin_access == 2:
-                keyboard = send_keyboard(self.bot, message, ["Отдел", "Все", "🔙Отмена"], config.section_ask, True)
+                keyboard = send_keyboard(self.bot, message, ["Отдел", "Все", "🔙Отмена"], Bot_config.section_ask, True)
                 self.bot.register_next_step_handler(keyboard, self.list_answer)
             else:
                 keyboard = send_keyboard(self.bot, message, ["Управление", "Все", "🔙Отмена"],
-                                         config.department_ask, True)
+                                         Bot_config.department_ask, True)
                 self.bot.register_next_step_handler(keyboard, self.list_answer)
 
     def simple_list(self, message):
-        keyboard = send_keyboard(self.bot, message, ["Выбрать", "Все", "🔙Отмена"], config.simple_list_ask, True)
+        keyboard = send_keyboard(self.bot, message, ["Выбрать", "Все", "🔙Отмена"], Bot_config.simple_list_ask, True)
         self.bot.register_next_step_handler(keyboard, self.list_answer)
 
     def list_answer(self, message):
@@ -1427,7 +1427,7 @@ class UsersList:
             entrance(message)
         else:
             self.user_department = message.text
-            keyboard = send_keyboard(self.bot, message, ["Отдел", "Все", "🔙Отмена"], config.section_ask, True)
+            keyboard = send_keyboard(self.bot, message, ["Отдел", "Все", "🔙Отмена"], Bot_config.section_ask, True)
             self.bot.register_next_step_handler(keyboard, self.get_department_answer)
 
     def get_department_answer(self, message):
@@ -1518,15 +1518,15 @@ class UsersList:
                 if user[5] != section:
                     section = user[5]
                     users_list += "\n\t\t*Отдел: {}*\n\n".format(section)
-                users_list += config.user_info.format(user[0], user[1].capitalize() + " " + user[2].capitalize() + " "
-                                                      + user[3].capitalize(), user[6])
+                users_list += Bot_config.user_info.format(user[0], user[1].capitalize() + " " + user[2].capitalize() + " "
+                                                          + user[3].capitalize(), user[6])
             self.bot.send_message(message.chat.id, users_list, parse_mode="Markdown")
             self.user_department = None
             self.user_section = None
             self.base.__del__()
             if self.list_type == "delete_list":
                 admin_obj = Administer(bot, self.admin_info)
-                keyboard = send_keyboard(self.bot, message, ["🔙Отмена"], config.bot_user_delete)
+                keyboard = send_keyboard(self.bot, message, ["🔙Отмена"], Bot_config.bot_user_delete)
                 self.bot.register_next_step_handler(keyboard, admin_obj.admin_delete_user)
             else:
                 navigation(message)
@@ -1537,7 +1537,7 @@ class UsersList:
             self.base.__del__()
             if self.list_type == "delete_list":
                 admin_obj = Administer(bot, self.admin_info)
-                keyboard = send_keyboard(self.bot, message, [config.user_list, "🔙Отмена"], config.bot_user_delete)
+                keyboard = send_keyboard(self.bot, message, [Bot_config.user_list, "🔙Отмена"], Bot_config.bot_user_delete)
                 self.bot.register_next_step_handler(keyboard, admin_obj.start_delete)
             else:
                 navigation(message)
@@ -1559,17 +1559,17 @@ class Mailing:
     def start_mailing(self, message):
             if self.admin_access == 1:
                 self.departments[self.admin_info["user_department"]] = [self.admin_info["user_section"]]
-                msg = send_keyboard(self.bot, message, [config.user_list, "Все", "🔙Отмена"],
-                                    config.mailing_choose_users)
+                msg = send_keyboard(self.bot, message, [Bot_config.user_list, "Все", "🔙Отмена"],
+                                    Bot_config.mailing_choose_users)
                 self.bot.register_next_step_handler(msg, self.start_choose_users)
             elif self.admin_access == 2:
                 self.departments[self.admin_info["user_department"]] = []
                 msg = send_keyboard(self.bot, message, ["Выбрать отделы", "Выбрать сотрудников", "Все", "🔙Отмена"],
-                                    config.mailing_help2, True)
+                                    Bot_config.mailing_help2, True)
                 self.bot.register_next_step_handler(msg, self.second_answer)
             else:
                 msg = send_keyboard(self.bot, message, ["Выбрать управления", "Выбрать сотрудников", "Все", "🔙Отмена"],
-                                    config.mailing_help3, True)
+                                    Bot_config.mailing_help3, True)
                 self.bot.register_next_step_handler(msg, self.third_answer)
 
     def third_answer(self, message):
@@ -1605,7 +1605,7 @@ class Mailing:
                     for i in row:
                         sections.append(i[0])
                 self.departments[d] = sections
-            msg = send_keyboard(self.bot, message, [config.user_list, "Все", "🔙Отмена"], config.mailing_choose_users)
+            msg = send_keyboard(self.bot, message, [Bot_config.user_list, "Все", "🔙Отмена"], Bot_config.mailing_choose_users)
             self.bot.register_next_step_handler(msg, self.start_choose_users)
         elif message.text == "Все":
             cursor = self.connection.cursor()
@@ -1648,7 +1648,7 @@ class Mailing:
             msg = send_keyboard(self.bot, message, ["🔙Отмена"], "\n".join(sections), True)
             self.bot.register_next_step_handler(msg, self.choose_sections_second)
         elif message.text == "Выбрать сотрудников":
-            msg = send_keyboard(self.bot, message, [config.user_list, "🔙Отмена"], config.mailing_choose_users)
+            msg = send_keyboard(self.bot, message, [Bot_config.user_list, "🔙Отмена"], Bot_config.mailing_choose_users)
             self.bot.register_next_step_handler(msg, self.start_choose_users)
 
     def choose_departments(self, message):
@@ -1665,7 +1665,7 @@ class Mailing:
             for d in departments:
                 self.departments[d] = []
             msg = send_keyboard(self.bot, message, ["Выбрать отделы", "Выбрать сотрудников", "Все", "🔙Отмена"],
-                                config.mailing_help2, True)
+                                Bot_config.mailing_help2, True)
             self.bot.register_next_step_handler(msg, self.choose_sections_third)
 
     def choose_sections_second(self, message):
@@ -1679,7 +1679,7 @@ class Mailing:
             entrance(message)
         else:
             self.departments[self.admin_info["user_department"]] = message.text.split()
-            msg = send_keyboard(self.bot, message, [config.user_list, "Все", "🔙Отмена"], config.mailing_choose_users)
+            msg = send_keyboard(self.bot, message, [Bot_config.user_list, "Все", "🔙Отмена"], Bot_config.mailing_choose_users)
             self.bot.register_next_step_handler(msg, self.start_choose_users)
 
     def choose_sections_third(self, message):
@@ -1718,7 +1718,7 @@ class Mailing:
                     for i in row:
                         sections.append(i[0])
                 self.departments[d] = sections
-            msg = send_keyboard(self.bot, message, [config.user_list, "Все", "🔙Отмена"], config.mailing_choose_users)
+            msg = send_keyboard(self.bot, message, [Bot_config.user_list, "Все", "🔙Отмена"], Bot_config.mailing_choose_users)
             self.bot.register_next_step_handler(msg, self.start_choose_users)
         else:
             self.create_mailing_list(message)
@@ -1749,7 +1749,7 @@ class Mailing:
                         for i in row:
                             sections.append(i[0])
                     self.departments[d] = sections
-            msg = send_keyboard(self.bot, message, [config.user_list, "Все", "🔙Отмена"], config.mailing_choose_users)
+            msg = send_keyboard(self.bot, message, [Bot_config.user_list, "Все", "🔙Отмена"], Bot_config.mailing_choose_users)
             self.bot.register_next_step_handler(msg, self.start_choose_users)
 
     def start_choose_users(self, message):
@@ -1763,7 +1763,7 @@ class Mailing:
             entrance(message)
         elif message.text == "Все":
             self.create_mailing_list(message)
-        elif message.text == config.user_list:
+        elif message.text == Bot_config.user_list:
             cursor = self.connection.cursor()
             users_list = "Пользователи доступные для рассылки:\n"
             for department in self.departments:
@@ -1777,9 +1777,9 @@ class Mailing:
                         users_list += "\n\t\tОтдел:\t{}\n\n".format(section)
                         if row:
                             for user in row:
-                                users_list += config.user_info.format(user[0], user[1].capitalize() + " " +
-                                                                      user[2].capitalize() + " " + user[3].capitalize(),
-                                                                      user[6])
+                                users_list += Bot_config.user_info.format(user[0], user[1].capitalize() + " " +
+                                                                          user[2].capitalize() + " " + user[3].capitalize(),
+                                                                          user[6])
                 else:
                     cursor.execute("SELECT user_id, user_surname, user_name, user_second_name, "
                                    "user_department, user_section, user_position FROM users "
@@ -1792,7 +1792,7 @@ class Mailing:
                             if i[5] != section:
                                 section = i[5]
                                 users_list += "\t\tОтдел:\t{}\n\n".format(section)
-                            users_list += config.user_info.format(i[0], i[1].capitalize() + " " + i[2].capitalize() +
+                            users_list += Bot_config.user_info.format(i[0], i[1].capitalize() + " " + i[2].capitalize() +
                                                                   " " + i[3].capitalize(), i[6] + "\n\n")
             self.bot.send_message(message.chat.id, users_list, parse_mode="Markdown")
             msg = send_keyboard(self.bot, message, ["Все", "🔙Отмена"], "Введите id пользователей, "
@@ -1851,7 +1851,7 @@ class Mailing:
             sender_name = self.admin_info["user_surname"].capitalize() + " " + \
                           self.admin_info["user_name"].capitalize() + " " + \
                           self.admin_info["user_second_name"].capitalize()
-            if sender_name in config.mgt_sender_names:
+            if sender_name in Bot_config.mgt_sender_names:
                 sender_name = "МОСГОРТУР"
             self.mailing_message = "<b>Рассылка от {}</b>".format(sender_name)
             if self.admin_info["telegram_link"] and sender_name != "МОСГОРТУР":
@@ -1904,7 +1904,7 @@ def get_user_information(message):
 
 
 def get_link(link_name):
-    base = DB(config.links_base_name)
+    base = DB(Bot_config.links_base_name)
     connection = base.get_connection()
     link_base = BotLinks(connection)
     link = link_base.get_link(link_name)
@@ -1925,9 +1925,9 @@ def authorization_last_try(message, last_try, menu):
     else:
         time_message = str(60 - last_authorization_try) + "сек."
         if menu == "start":
-            start_menu(message, False, config.password_limit_message + time_message)
+            start_menu(message, False, Bot_config.password_limit_message + time_message)
         else:
-            guest_menu(message, False, config.password_limit_message + time_message)
+            guest_menu(message, False, Bot_config.password_limit_message + time_message)
 
 
 @bot.message_handler(commands=["menu"])
@@ -1949,7 +1949,7 @@ def check_authorization(message, menu="start"):
             authorization_last_try(message, last_try, menu)
     else:
         base.__del__()
-        base = DB(config.bot_base_name)
+        base = DB(Bot_config.bot_base_name)
         connection = base.get_connection()
         bot_base = BotDB(connection)
         user = bot_base.get_chat_info(message.chat.id)
@@ -2039,7 +2039,7 @@ def admin(message):
 
 @bot.message_handler(commands=["account"])
 def personal_account(message):
-    bot.send_message(message.chat.id, config.account_help_message)
+    bot.send_message(message.chat.id, Bot_config.account_help_message)
     account = PersonalAccount(bot)
     account.account_menu(message)
 
@@ -2048,7 +2048,7 @@ def personal_account(message):
 
 
 @bot.message_handler(commands=["navigation"])
-def start_navigation(message, bot_message=config.navigation_message):
+def start_navigation(message, bot_message=Bot_config.navigation_message):
     msg = send_keyboard(bot, message, ["👫Сотрудники", "📋Меню"], bot_message, True)
     bot.register_next_step_handler(msg, navigation)
 
@@ -2061,7 +2061,7 @@ def navigation(message):
     elif message.text == "/menu":
         entrance(message)
     else:
-        msg = send_keyboard(bot, message, [config.user_list, "🔙Отмена"],
+        msg = send_keyboard(bot, message, [Bot_config.user_list, "🔙Отмена"],
                             "Введите id или ФИО сотрудника, о котором хотите узнать")
         bot.register_next_step_handler(msg, user_search)
 
@@ -2073,7 +2073,7 @@ def user_search(message):
         start(message)
     elif message.text == "/menu":
         entrance(message)
-    elif message.text == config.user_list:
+    elif message.text == Bot_config.user_list:
         info = get_user_information(message)
         info["access_level"] = 3
         users_list = UsersList(bot, info, "simple_list")
@@ -2132,7 +2132,7 @@ def navigation_answer(message):
 @bot.message_handler(commands=["start"])
 def start(message):
     bot.send_message(message.chat.id, bot_greeting())
-    msg = send_keyboard(bot, message, ["Начать"], config.description, True)
+    msg = send_keyboard(bot, message, ["Начать"], Bot_config.description, True)
     bot.register_next_step_handler(msg, start_button)
 
 
@@ -2140,11 +2140,11 @@ def start_button(message):
     entrance(message)
 
 
-def start_menu(message, start_help=False, bot_message=config.start_authorization_message):
+def start_menu(message, start_help=False, bot_message=Bot_config.start_authorization_message):
     if start_help:
         bot.send_message(message.chat.id, bot_message)
         msg = send_keyboard(bot, message, ["🚪Вход", "🚶Войти как гость", "💬Обратная связь"],
-                            config.start_menu_message, True)
+                            Bot_config.start_menu_message, True)
     else:
         msg = send_keyboard(bot, message, ["🚪Вход", "🚶Войти как гость", "💬Обратная связь"], bot_message, True)
     bot.register_next_step_handler(msg, start_menu_answer)
@@ -2167,7 +2167,7 @@ def start_menu_answer(message):
 
 def guest_menu(message, guest_help=False, bot_message="Чем я могу помочь?"):
     if guest_help:
-        bot.send_message(message.chat.id, config.guest_menu_help_message)
+        bot.send_message(message.chat.id, Bot_config.guest_menu_help_message)
     msg = send_keyboard(bot, message, ["📜История", "💎Привилегии", "💬Обратная связь", "🚪Вход"], bot_message, True)
     bot.register_next_step_handler(msg, guest_menu_functions)
 
@@ -2196,13 +2196,13 @@ def main_menu(message, bot_message="Чем я могу помочь?", send_help
         bot.send_message(message.chat.id, bot_greeting())
     if information["access_level"] == 0:
         if send_help:
-            bot.send_message(message.chat.id, config.menu_user_help_message)
+            bot.send_message(message.chat.id, Bot_config.menu_user_help_message)
             sleep(1)
         msg = send_keyboard(bot, message, ["📜История", "💻Сервисы", "💎Привилегии", "🌍Навигация",
                                            "🏠Личный кабинет", "💬Обратная связь"], bot_message, True)
     else:
         if send_help:
-            bot.send_message(message.chat.id, config.menu_admin_help_message)
+            bot.send_message(message.chat.id, Bot_config.menu_admin_help_message)
             sleep(1)
         msg = send_keyboard(bot, message, ["📜История", "💻Сервисы", "💎Привилегии", "🌍Навигация",
                                            "🏠Личный кабинет", "💬Обратная связь", "👑Администрирование"],
