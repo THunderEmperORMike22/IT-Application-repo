@@ -1,4 +1,4 @@
-import config
+import Bot_config
 import telebot
 import bcrypt
 from datetime import datetime
